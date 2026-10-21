@@ -78,7 +78,11 @@
     return out.slice(0, 1500);
   };
 
-  function el(n) { return n && n.b ? document.querySelector('[data-a11y-ax="' + n.b + '"]') : null; }
+  function el(n) {
+    if (!n) return null;
+    if (n.el) return n.el;
+    return n.b ? document.querySelector('[data-a11y-ax="' + n.b + '"]') : null;
+  }
   function norm(t) { return A.clean(t).toLowerCase().replace(/[^a-z0-9 ]/g, ''); }
 
   A.srChecks = function () {

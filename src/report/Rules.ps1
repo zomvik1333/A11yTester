@@ -59,10 +59,10 @@ $Script:Rules = @{
         What = 'Keyboard users have to tab through {count} menu items before reaching the content, on every screen.'
         Fix  = 'Add a Skip to Main Content link at the top and mark the main content area.' }
     'sr-unnamed'          = @{ Title = 'Control has no name'; Wcag = '4.1.2'; WcagName = 'Name, Role, Value'; Dof = 'Screen reader reads labels and buttons'; Who = 'Screen reader and voice control users'
-        What = 'The screen reader only says "{role}" for {name}, with no name, so users cannot tell what it does.'
+        What = 'The screen reader only says "{role}" for this item, with no name, so users cannot tell what it does.'
         Fix  = 'Give it a name that says what it does. The name can be hidden from sight and still be read aloud.' }
     'sr-no-label'         = @{ Title = 'Field has no label'; Wcag = '1.3.1'; WcagName = 'Info and Relationships'; Dof = 'Fields labeled and announced'; Who = 'Screen reader users'
-        What = 'The screen reader reads {name} with no label, so users do not know what to type.'
+        What = 'A screen reader reads this field with no label, so users do not know what to type.'
         Fix  = 'Tie the visible label to the field.' }
     'sr-placeholder'      = @{ Title = 'Field label disappears when typing'; Wcag = '3.3.2'; WcagName = 'Labels or Instructions'; Dof = 'Label and input pairs'; Who = 'People with memory or attention difficulties, and screen reader users'
         What = 'The field "{name}" only has gray hint text inside it. The hint vanishes once someone starts typing.'
@@ -147,7 +147,7 @@ $Script:WcagList = @(
 )
 
 $Script:ManualChecks = @(
-    @('1.1.1', 'Read the image descriptions in the transcripts file and confirm each one makes sense.'),
+    @('1.1.1', 'Read the image descriptions in the screen reader transcript and confirm each one makes sense.'),
     @('1.2.1 to 1.2.5', 'If the app has any video or audio, confirm captions and transcripts exist.'),
     @('1.4.2', 'If anything plays sound on its own for more than 3 seconds, confirm it can be paused or muted.'),
     @('1.4.5', 'Look for pictures of words, like text inside a banner image. Real text should be used instead.'),

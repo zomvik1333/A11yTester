@@ -52,6 +52,33 @@ It asks for the app name and the dev or test link, then saves them. Next time yo
 
 Explore the whole app on its own is planned for the next version.
 
+## A11y Snippet
+
+A lighter version that runs inside Edge developer tools. Nothing runs outside the browser, so there is no PowerShell and no remote control of Edge. It checks one screen at a time, you do the zooming, and the report goes to your clipboard for pasting into Word. It takes no screenshots, but each issue has a Show Me button that outlines the problem on screen.
+
+### Save it once
+
+1. Open the snippet at https://raw.githubusercontent.com/zomvik1333/A11yTester/main/A11ySnippet.js and press Ctrl+A, then Ctrl+C.
+2. Open your app in Edge and press F12 to open developer tools.
+3. Click the **Sources** tab. On the left, click **Snippets** (it may be behind the >> arrows). Click **New snippet** and name it A11y.
+4. Click in the empty editor and press Ctrl+V. If Edge warns you about pasting, type `allow pasting` and press Enter, then paste again.
+5. Press Ctrl+S to save. Edge keeps the snippet for next time.
+
+### Use it on each screen
+
+1. Go to the screen you want to check and press F12.
+2. Press Ctrl+P, type `!A11y` and press Enter. The panel appears in the bottom right corner of the page. You can close developer tools now.
+3. Type how you got to this screen, for example "Log in. Click Reports. Click Budget Request." Then click **Test This Screen**.
+4. For the zoom check, press Ctrl and + until the width in the panel shows 320 or less, then click **Check 400%**. Press Ctrl and 0 to go back to normal.
+5. Go to the next screen and repeat. Results from every screen are kept until you click Clear All.
+6. When you are done, click **Copy Report** and paste into a blank Word document. If copying is blocked, click **Open Report**, then press Ctrl+A and Ctrl+C in the new tab.
+
+**Screen Reader View** opens what a screen reader would say on the current screen.
+
+### What the snippet cannot do
+
+Because it cannot press real keys, it cannot detect keyboard traps or focus hidden behind sticky headers. Those two are added to the Needs a Person list. Its screen reader view is worked out from the page code rather than read from the browser, so it is a little less exact than the full tool.
+
 ## What you get
 
 A dated folder in `Documents\A11y Tester Results\<App name>` with these files.
@@ -97,7 +124,8 @@ The tool is one PowerShell file built from small source files.
 - `src/browser` holds the JavaScript checks that run inside the page
 - `src/report` holds the message library, the scorecard and a small .docx writer
 - `build.ps1` stitches them into `A11yTester.ps1`, which must stay plain ASCII so copy and paste works
-- `tests/Run-Tests.ps1` runs the tool against `test-site`, where every page has planted problems except `clean.html`
+- `src/snippet` holds the extra code for A11y Snippet, which reuses the browser checks
+- `tests/Run-Tests.ps1` and `tests/Run-SnippetTests.ps1` run both versions against `test-site`, where every page has planted problems except `clean.html`
 
 Edit the `src` files, run `build.ps1`, then run the tests.
 

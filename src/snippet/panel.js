@@ -25,11 +25,13 @@
   function save(d) { memStore = d; try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) { } }
   function rank(s) { return s === 'High' ? 3 : s === 'Medium' ? 2 : 1; }
 
+  function screenKey() { return location.href + '|' + A.screenInfo().name; }
   function currentScreen(data, create) {
-    for (var i = data.screens.length - 1; i >= 0; i--) { if (data.screens[i].url === location.href) return data.screens[i]; }
+    var key = screenKey();
+    for (var i = data.screens.length - 1; i >= 0; i--) { if ((data.screens[i].key || data.screens[i].url) === key) return data.screens[i]; }
     if (!create) return null;
     var info = A.screenInfo();
-    var s = { url: location.href, name: info.name, how: '', when: new Date().toLocaleString(), issues: [], parts: {} };
+    var s = { key: key, url: location.href, name: info.name, how: '', when: new Date().toLocaleString(), issues: [], parts: {} };
     data.screens.push(s);
     return s;
   }
@@ -101,9 +103,97 @@
     },
     transcript: function () { A.buildAxFromDom(); return A.transcript(); },
     data: load,
-    clear: function () { save({ screens: [] }); try { localStorage.removeItem(KEY); } catch (e) { } A.snip.lastFindings = []; },
-    removeScreen: function () { var d = load(); d.screens = d.screens.filter(function (s) { return s.url !== location.href; }); save(d); }
+    clear: function () { save({ screens: [] }); try { localStorage.removeItem(KEY); } catch (e) { } A.snip.lastFindings = []; ssSet(TKEY, []); memTrail = []; },
+    removeScreen: function () { var d = load(), k = screenKey(); d.screens = d.screens.filter(function (s) { return (s.key || s.url) !== k; }); save(d); }
   };
+
+  /* ---------- Recording clicks and testing each new screen on its own ---------- */
+  var TKEY = '__a11ySnipTrail', OKEY = '__a11ySnipAuto';
+  var memTrail = [], memAuto = true;
+  function ssGet(k) { try { var x = sessionStorage.getItem(k); return x ? JSON.parse(x) : null; } catch (e) { return null; } }
+  function ssSet(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) { } return v; }
+  function trail() { return ssGet(TKEY) || memTrail; }
+  function record(step) {
+    var t = trail().slice();
+    if (t[t.length - 1] === step) return;
+    t.push(step);
+    if (t.length > 40) t = t.slice(-40);
+    memTrail = t; ssSet(TKEY, t);
+  }
+  function labelOf(el) {
+    var t = el.getAttribute('aria-label') || el.innerText || el.value || el.getAttribute('title') || el.getAttribute('alt') || '';
+    if (!t) { var img = el.querySelector && el.querySelector('img[alt]'); if (img) t = img.getAttribute('alt'); }
+    return A.short(t, 50);
+  }
+  function fieldName(el) {
+    var t = (el.labels && el.labels.length ? el.labels[0].innerText : '') || el.getAttribute('aria-label') || el.getAttribute('placeholder') || el.name || '';
+    return A.short(String(t).replace(/\*/g, ''), 40) || 'unlabeled';
+  }
+  function where(el) {
+    if (el.closest('[role=tablist]')) return ' tab';
+    if (el.closest('nav,[role=navigation],[role=menubar],[role=menu]')) return ' in the menu';
+    if (el.closest('header,[role=banner]')) return ' at the top of the screen';
+    if (el.closest('[role=dialog],dialog')) return ' in the popup';
+    return '';
+  }
+  function attachRecorder() {
+    if (window.__a11ySnipRec) return;
+    window.__a11ySnipRec = true;
+    document.addEventListener('click', function (ev) {
+      if (host && ev.composedPath && ev.composedPath().indexOf(host) >= 0) return;
+      var el = ev.target && ev.target.closest ? ev.target.closest('a,button,[role=button],[role=link],[role=tab],[role=menuitem],[role=option],[role=treeitem],summary,input[type=button],input[type=submit],input[type=checkbox],input[type=radio],label,[onclick]') : null;
+      if (!el || A.isOurs(el)) return;
+      if (el.matches('input[type=checkbox],input[type=radio]')) { record('Tick ' + fieldName(el) + '.'); return; }
+      var name = labelOf(el);
+      if (name) record('Click "' + name + '"' + where(el) + '.');
+    }, true);
+    document.addEventListener('change', function (ev) {
+      var el = ev.target;
+      if (!el || !el.matches || A.isOurs(el)) return;
+      if (el.matches('select')) record('Pick an option in the ' + fieldName(el) + ' dropdown.');
+      else if (el.matches('input:not([type=checkbox]):not([type=radio]),textarea')) record('Type in the ' + fieldName(el) + ' box.');
+    }, true);
+  }
+  function autoOn() { var v = ssGet(OKEY); return v === null ? memAuto : !!v; }
+  function setAuto(v) { memAuto = v; ssSet(OKEY, v); }
+  A.snip.trail = trail;
+  A.snip.directions = function () { return ['Log in.'].concat(trail().slice(-10)).join('\n'); };
+  A.snip.setAuto = setAuto;
+  var lastKey = null, busy = false;
+  A.snip.autoCheck = function (force) {
+    if (busy || (!force && !autoOn())) return Promise.resolve(false);
+    var key = screenKey();
+    if (!force && key === lastKey) return Promise.resolve(false);
+    lastKey = key;
+    var existing = currentScreen(load(), false);
+    if (!force && existing && existing.parts && existing.parts.screen) { onTested(existing, true); return Promise.resolve(false); }
+    busy = true;
+    status('New screen found. Testing it now, keep your hands off for a moment...');
+    return A.settle(700, 6000).then(function () {
+      busy = false;
+      if (screenKey() !== key) { lastKey = null; return false; }
+      var info = A.screenInfo();
+      var prev = currentScreen(load(), false);
+      var how = prev && prev.how ? prev.how : A.snip.directions();
+      var list = A.snip.testScreen(info.name, how);
+      onTested(currentScreen(load(), false), false, list);
+      return true;
+    }, function () { busy = false; return false; });
+  };
+  function onTested(s, already, list) {
+    if (!root) return;
+    refreshFields();
+    renderList();
+    var n = (list || (s ? s.issues : [])).filter(function (f) { return f.rule !== 'tool-error'; }).length;
+    status((already ? 'Already tested "' : 'Tested "') + (s ? s.name : '') + '". ' + n + ' possible issue(s). Run the zoom check now, or go to the next screen.');
+  }
+  function startWatcher() {
+    if (window.__a11ySnipTimer) clearInterval(window.__a11ySnipTimer);
+    window.__a11ySnipTimer = setInterval(function () {
+      if (!document.getElementById('__a11y_toolbar_host')) { clearInterval(window.__a11ySnipTimer); window.__a11ySnipTimer = null; return; }
+      A.snip.autoCheck(false);
+    }, 800);
+  }
 
   /* ---------- Report ---------- */
   var TH = 'background:#0A3470;color:#ffffff;font-weight:bold;text-align:left;padding:5px 8px;border:1px solid #999999;';
@@ -286,18 +376,26 @@
       '.min .bd{display:none}' +
       '</style><div class="p" role="region" aria-label="A11y Snippet"><div class="hd"><span class="t">A11y Snippet</span><span>' +
       '<button class="x" id="min" type="button" aria-label="Minimize panel">_</button><button class="x" id="close" type="button" aria-label="Close panel">x</button></span></div>' +
-      '<div class="bd"><label for="nm">Screen name</label><input id="nm" type="text">' +
-      '<label for="how">How to get here</label><textarea id="how" rows="2" placeholder="Example. Log in. Click Reports. Click Budget Request."></textarea>' +
-      '<button class="pri" id="test" type="button">Test This Screen</button>' +
+      '<div class="bd"><div class="muted" id="mode"></div>' +
+      '<button id="auto" type="button">Pause Auto Testing</button>' +
+      '<label for="nm">Screen name</label><input id="nm" type="text">' +
+      '<label for="how">How to get here, filled in from your clicks</label><textarea id="how" rows="3"></textarea>' +
+      '<button class="pri" id="test" type="button">Test Again</button>' +
       '<div class="sec"><div><strong>Zoom checks</strong></div><div class="muted">Press Ctrl and + until the width below is 320 or less, then click Check 400%. Press Ctrl and 0 when done.</div>' +
       '<div class="muted">Width now <strong id="w">0</strong></div><button id="z4" type="button">Check 400%</button><button id="z2" type="button">Check 200%</button></div>' +
       '<div class="sec"><div><strong>This screen</strong></div><div id="list"></div><button class="sm" id="hide" type="button">Hide Boxes</button><button class="sm" id="sr" type="button">Screen Reader View</button></div>' +
       '<div class="sec"><div class="muted" id="saved"></div><button class="pri" id="copy" type="button">Copy Report</button><button id="open" type="button">Open Report</button>' +
       '<button class="sm" id="clear" type="button">Clear All</button></div><div class="st" id="st" role="status"></div></div></div>';
     el.status = $('st'); el.list = $('list'); el.saved = $('saved'); el.width = $('w');
-    var data = load(), s = currentScreen(data, false), info = A.screenInfo();
-    $('nm').value = s ? s.name : info.name;
-    $('how').value = s ? (s.how || '') : '';
+    var info = A.screenInfo();
+    refreshFields();
+    function showMode() {
+      var on = autoOn();
+      $('auto').textContent = on ? 'Pause Auto Testing' : 'Resume Auto Testing';
+      $('mode').textContent = on ? 'Auto testing is on. Just use the app and each new screen is tested on its own. If the whole page reloads, press F12, then Ctrl+P, type !A11y and press Enter.' : 'Auto testing is paused. Click Test Again to test this screen.';
+    }
+    $('auto').addEventListener('click', function () { setAuto(!autoOn()); showMode(); if (autoOn()) A.snip.autoCheck(false); });
+    showMode();
     $('test').addEventListener('click', function () {
       status('Checking this screen...');
       setTimeout(function () {
@@ -337,15 +435,25 @@
     $('open').addEventListener('click', function () { if (!openReport()) status('The browser blocked the new tab. Allow popups for this site and try again.'); });
     $('clear').addEventListener('click', function () {
       if ($('clear').getAttribute('data-sure') !== '1') { $('clear').setAttribute('data-sure', '1'); $('clear').textContent = 'Click again to clear'; return; }
-      A.snip.clear(); $('clear').removeAttribute('data-sure'); $('clear').textContent = 'Clear All'; renderList(); status('All saved screens cleared.');
+      A.snip.clear(); $('clear').removeAttribute('data-sure'); $('clear').textContent = 'Clear All'; lastKey = null; refreshFields(); renderList(); status('All saved screens and recorded clicks cleared.');
     });
     $('min').addEventListener('click', function () { root.querySelector('.p').classList.toggle('min'); });
-    $('close').addEventListener('click', function () { A.clearOverlays(); host.remove(); window.removeEventListener('resize', updateWidth); });
+    $('close').addEventListener('click', function () { A.clearOverlays(); host.remove(); root = null; window.removeEventListener('resize', updateWidth); });
     window.addEventListener('resize', updateWidth);
     document.documentElement.appendChild(host);
     updateWidth();
     renderList();
-    status('Ready. Fill in how you got here, then click Test This Screen.');
+    attachRecorder();
+    startWatcher();
+    lastKey = null;
+    if (autoOn()) setTimeout(function () { A.snip.autoCheck(false); }, 300);
+    else status('Auto testing is paused.');
+  }
+  function refreshFields() {
+    if (!root) return;
+    var s = currentScreen(load(), false), info = A.screenInfo();
+    root.getElementById('nm').value = s ? s.name : info.name;
+    root.getElementById('how').value = s ? (s.how || '') : A.snip.directions();
   }
 
   A.snip.showPanel = build;

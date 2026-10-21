@@ -54,7 +54,7 @@ Explore the whole app on its own is planned for the next version.
 
 ## A11y Snippet
 
-A lighter version that runs inside Edge developer tools. Nothing runs outside the browser, so there is no PowerShell and no remote control of Edge. It checks one screen at a time, you do the zooming, and the report goes to your clipboard for pasting into Word. It takes no screenshots, but each issue has a Show Me button that outlines the problem on screen.
+A lighter version that runs inside Edge developer tools. Nothing runs outside the browser, so there is no PowerShell and no remote control of Edge. It records your clicks and tests each screen as you go, you do the zooming, and the report goes to your clipboard for pasting into Word. It takes no screenshots, but each issue has a Show Me button that outlines the problem on screen.
 
 ### Save it once
 
@@ -64,14 +64,16 @@ A lighter version that runs inside Edge developer tools. Nothing runs outside th
 4. Click in the empty editor and press Ctrl+V. If Edge warns you about pasting, type `allow pasting` and press Enter, then paste again.
 5. Press Ctrl+S to save. Edge keeps the snippet for next time.
 
-### Use it on each screen
+### Use it
 
-1. Go to the screen you want to check and press F12.
-2. Press Ctrl+P, type `!A11y` and press Enter. The panel appears in the bottom right corner of the page. You can close developer tools now.
-3. Type how you got to this screen, for example "Log in. Click Reports. Click Budget Request." Then click **Test This Screen**.
-4. For the zoom check, press Ctrl and + until the width in the panel shows 320 or less, then click **Check 400%**. Press Ctrl and 0 to go back to normal.
-5. Go to the next screen and repeat. Results from every screen are kept until you click Clear All.
+1. Log in to your app in Edge and go to the first screen you want to check.
+2. Press F12, then Ctrl+P, type `!A11y` and press Enter. The panel appears in the bottom right corner and tests the screen right away. You can close developer tools now.
+3. Just use the app. The snippet records what you click and tests each new screen on its own, a second or two after it loads. The panel fills in the directions to each screen for you.
+4. If your app reloads the whole page when you move between screens, the browser clears the snippet. On each new page press F12, then Ctrl+P, type `!A11y` and press Enter again. Your clicks are still remembered and the new page is tested right away.
+5. For the zoom check on a screen, press Ctrl and + until the width in the panel shows 320 or less, then click **Check 400%**. Press Ctrl and 0 to go back to normal.
 6. When you are done, click **Copy Report** and paste into a blank Word document. If copying is blocked, click **Open Report**, then press Ctrl+A and Ctrl+C in the new tab.
+
+Results and recorded clicks are kept until you click **Clear All**, so clear them before starting a new app. Click **Pause Auto Testing** if you want to move around without testing, and **Test Again** to retest a screen after fixing the name or directions.
 
 **Screen Reader View** opens what a screen reader would say on the current screen.
 
@@ -125,7 +127,7 @@ The tool is one PowerShell file built from small source files.
 - `src/report` holds the message library, the scorecard and a small .docx writer
 - `build.ps1` stitches them into `A11yTester.ps1`, which must stay plain ASCII so copy and paste works
 - `src/snippet` holds the extra code for A11y Snippet, which reuses the browser checks
-- `tests/Run-Tests.ps1` and `tests/Run-SnippetTests.ps1` run both versions against `test-site`, where every page has planted problems except `clean.html`
+- `tests/Run-Tests.ps1`, `tests/Run-SnippetTests.ps1` and `tests/Run-SnippetAutoTest.ps1` run both versions against `test-site`, where every page has planted problems except `clean.html`
 
 Edit the `src` files, run `build.ps1`, then run the tests.
 

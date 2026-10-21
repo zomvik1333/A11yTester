@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Dashboard | Sample SPA</title>
+<style>body{font-family:Arial,sans-serif;margin:0} nav a{margin-right:12px} main{padding:12px}</style></head>
+<body>
+<header><nav aria-label="Main"><a href="#/dashboard">Dashboard</a><a href="#/requests">Requests</a><a href="#/settings">Settings</a></nav></header>
+<main id="main"></main>
+<script>
+var views = {
+  '#/dashboard': '<h1>Dashboard</h1><p>Welcome back.</p>',
+  '#/requests': '<h1>Requests</h1><button type="button"><svg width="16" height="16" aria-hidden="true"><rect width="16" height="16"/></svg></button><input type="text" placeholder="Filter">',
+  '#/settings': '<h1>Settings</h1><label for="em">Email</label><input id="em" type="email">'
+};
+function render(){ var v = views[location.hash] || views['#/dashboard']; document.getElementById('main').innerHTML = v; document.title = (location.hash.replace('#/','') || 'dashboard').replace(/^./, function(c){return c.toUpperCase();}) + ' | Sample SPA'; }
+window.addEventListener('hashchange', render); render();
+</script>
+</body></html>

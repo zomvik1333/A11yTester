@@ -1,5 +1,5 @@
 <#
-  A11y Tester 1.1.0
+  A11y Tester 1.2.0
   Local WCAG 2.2 accessibility tester for web apps. Tests zoom, keyboard use and
   screen reader output, then writes a plain English Word report.
 
@@ -18,7 +18,7 @@ param(
     [string]$DataDir, [string]$ResultsDir, [string]$BrowserPath, [switch]$Headless, [switch]$NoSandbox, [switch]$NoOpen,
     [string[]]$Skip = @(), [switch]$KeepLogin
 )
-$Script:ToolVersion = '1.1.0'
+$Script:ToolVersion = '1.2.0'
 
 #region src/driver/Cdp.ps1
 # ---------------------------------------------------------------------------

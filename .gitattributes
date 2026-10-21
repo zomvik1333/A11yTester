@@ -1,0 +1,3 @@
+A11yTester.ps1 -text
+*.bat -text
+

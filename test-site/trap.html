@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Trap | Sample App</title></head>
+<body>
+<main>
+<h1>Date Picker Trap</h1>
+<p><a href="#before">Before the widget</a></p>
+<div id="w">
+  <input id="t1" aria-label="Start date"> <input id="t2" aria-label="End date">
+</div>
+<p><a href="#after">After the widget</a></p>
+<script>
+document.getElementById('w').addEventListener('keydown', function(e){
+  if (e.key === 'Tab') { e.preventDefault(); var a=document.getElementById('t1'), b=document.getElementById('t2'); (document.activeElement===a?b:a).focus(); }
+});
+</script>
+</main>
+</body></html>

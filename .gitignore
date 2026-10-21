@@ -1,0 +1,7 @@
+# Never commit app links, logins or results
+A11y Tester Data/
+A11y Tester Results/
+Browser Profile/
+*.docx
+*.csv
+*.log

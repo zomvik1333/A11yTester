@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Clean Page | Sample App</title>
+<style>
+ body{font-family:Arial,sans-serif;margin:0;color:#111;background:#fff}
+ header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #ccc}
+ nav ul{list-style:none;display:flex;flex-wrap:wrap;gap:12px;margin:0;padding:0}
+ nav a{color:#0A3470;display:inline-block;padding:6px 4px}
+ main{max-width:900px;margin:0 auto;padding:16px}
+ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #C49F47;outline-offset:2px}
+ .skip{position:absolute;left:-999px;top:0}
+ .skip:focus{left:8px;background:#fff;padding:6px}
+ label{display:block;margin-top:12px;font-weight:bold}
+ input,select{font-size:16px;padding:6px;max-width:100%}
+ button{font-size:16px;padding:8px 14px;margin-top:12px;background:#0A3470;color:#fff;border:0;border-radius:4px}
+ table{border-collapse:collapse;margin-top:16px}
+ th{background:#0A3470;color:#fff}
+ th,td{padding:6px 10px;border:1px solid #999}
+</style></head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header><span>Sample App</span><nav aria-label="Main menu"><ul><li><a href="clean.html" aria-current="page">Home</a></li><li><a href="zoom.html">Reports</a></li><li><a href="keyboard.html">Requests</a></li></ul></nav></header>
+<main id="main">
+<h1>Budget Request</h1>
+<p>Fill in the request below. Required fields are marked with the word required.</p>
+<h2>REQUEST DETAILS</h2>
+<form onsubmit="return false">
+<label for="fy">Fiscal Year (required)</label>
+<select id="fy" required><option>2026</option><option>2027</option></select>
+<label for="amt">Amount (required)</label>
+<input id="amt" type="text" required>
+<label for="note">Notes</label>
+<input id="note" type="text">
+<button type="button">Save Draft</button>
+</form>
+<h2>Recent Requests</h2>
+<table><caption>Recent requests</caption><thead><tr><th scope="col">ID</th><th scope="col">Amount</th></tr></thead><tbody><tr><td>101</td><td>500</td></tr><tr><td>102</td><td>750</td></tr></tbody></table>
+<p><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Crect width='120' height='40' fill='%230A3470'/%3E%3C/svg%3E" alt="Department of Finance logo" width="120" height="40"></p>
+</main>
+<footer><p>Sample footer</p></footer>
+</body></html>

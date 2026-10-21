@@ -1,0 +1,6 @@
+# page<TAB>rules that must be found. clean.html must have none.
+zoom.html	zoom-reflow zoom-clip-400 zoom-overlap-400 zoom-lost
+keyboard.html	kb-unreachable kb-fake kb-fake-check kb-obscured kb-order kb-focus-invisible
+screenreader.html	sr-unnamed sr-no-label sr-placeholder sr-required sr-img-noalt sr-img-badalt sr-label-in-name sr-vague sr-no-h1 sr-heading-skip sr-fake-heading sr-landmarks sr-table-headers sr-no-lang sr-hidden-focusable vis-target-size vis-sensory
+trap.html	kb-trap
+clean.html
